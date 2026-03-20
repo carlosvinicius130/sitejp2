@@ -84,6 +84,13 @@ def _safe_num(v):
 
 def _ensure_schema():
     inspector = inspect(db.engine)
+    existing_tables = set(inspector.get_table_names())
+
+    required_tables = {"usuarios", "projetos", "demandas"}
+    if not required_tables.issubset(existing_tables):
+        db.create_all()
+        inspector = inspect(db.engine)
+        existing_tables = set(inspector.get_table_names())
 
     user_columns = {column["name"] for column in inspector.get_columns("usuarios")}
     if "aprovado" not in user_columns:
