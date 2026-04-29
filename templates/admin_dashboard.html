@@ -15,7 +15,7 @@
       <span>SiteJP Admin</span>
     </div>
     <div class="topbar-actions">
-      <a class="btn ghost" href="{{ url_for('login') }}">Area do usuario</a>
+      <a class="btn ghost" href="{{ url_for('login') }}">Área do usuário</a>
       <a class="btn primary" href="{{ url_for('logout') }}">Sair</a>
     </div>
   </header>
@@ -23,8 +23,8 @@
   <main class="page page--admin">
     <section class="admin-hero">
       <div>
-        <p class="eyebrow">Governanca de acessos</p>
-        <h1 class="page-title">Administracao de usuarios</h1>
+        <p class="eyebrow">Governança de acessos</p>
+        <h1 class="page-title">Administração de usuários</h1>
         <p class="page-subtitle">Aprove, bloqueie ou remova contas antes do acesso ao sistema.</p>
       </div>
       <div class="admin-stats">
@@ -70,7 +70,7 @@
                 <th>Empresa</th>
                 <th>Email</th>
                 <th>Status</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody id="adminUsersTable">
@@ -98,7 +98,7 @@
         </div>
       {% else %}
         <div class="empty">
-          <p>Nenhum usuario encontrado para esse filtro.</p>
+          <p>Nenhum usuário encontrado para esse filtro.</p>
         </div>
       {% endif %}
     </section>
@@ -108,18 +108,18 @@
 
   <div class="sheet sheet--confirm" id="deleteUserSheet" hidden>
     <div class="sheet-header">
-      <h2>Excluir usuario</h2>
+      <h2>Excluir usuário</h2>
       <button class="icon-btn" id="btnCloseDeleteUser" type="button" aria-label="Fechar">X</button>
     </div>
     <div class="form">
-      <p id="deleteUserInfo">Digite <b>DELETAR</b> para confirmar a exclusao.</p>
+      <p id="deleteUserInfo">Digite <b>DELETAR</b> para confirmar a exclusão.</p>
       <div class="field">
-        <label for="deleteUserConfirm">Confirmacao</label>
+        <label for="deleteUserConfirm">Confirmação</label>
         <input id="deleteUserConfirm" type="text" placeholder="Digite: DELETAR">
       </div>
       <div class="form-actions">
         <button class="btn ghost" id="btnCancelDeleteUser" type="button">Cancelar</button>
-        <button class="btn primary danger-btn" id="btnDoDeleteUser" type="button">Excluir usuario</button>
+        <button class="btn primary danger-btn" id="btnDoDeleteUser" type="button">Excluir usuário</button>
       </div>
       <p class="form-error" id="deleteUserError" hidden></p>
     </div>

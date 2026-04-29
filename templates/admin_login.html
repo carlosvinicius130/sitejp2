@@ -17,7 +17,7 @@
       <img class="brand-logo" src="{{ url_for('favicon') }}?v=2" alt="SiteJP">
       <span>SiteJP Admin</span>
     </div>
-    <a class="btn ghost" href="{{ url_for('login') }}">Area do usuario</a>
+    <a class="btn ghost" href="{{ url_for('login') }}">Área do usuário</a>
   </header>
 
   <main class="auth-shell auth-shell--admin">
@@ -25,7 +25,7 @@
       <div class="auth-card-top">
         <p class="auth-kicker">Painel administrativo</p>
         <h2>Controle de acessos</h2>
-        <p class="auth-support">Aprovacao, bloqueio e exclusao de usuarios cadastrados.</p>
+        <p class="auth-support">Aprovação, bloqueio e exclusão de usuários cadastrados.</p>
       </div>
 
       {% with messages = get_flashed_messages(with_categories=true) %}

@@ -16,7 +16,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const profile = document.getElementById("profile");
   const profileBtn = document.getElementById("profileBtn");
   const profileMenu = document.getElementById("profileMenu");
-  const profilePanel = document.getElementById("profilePanel");
   const avatarTop = document.getElementById("avatarTop");
   const cards = document.getElementById("cards");
   const countEls = document.querySelectorAll(".js-count");
@@ -139,17 +138,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderDemandInputs(periodos, values = []) {
     camposDemanda.innerHTML = "";
     if (!periodos || periodos < 2) {
-      demandaHint.textContent = "Defina o numero de periodos para gerar os campos.";
+      demandaHint.textContent = "Defina o número de períodos para gerar os campos.";
       return;
     }
 
-    demandaHint.textContent = "Preencha os valores ou mude para importacao por Excel.";
+    demandaHint.textContent = "Preencha os valores ou mude para importação por Excel.";
     for (let i = 1; i <= periodos; i += 1) {
       const wrapper = document.createElement("div");
       wrapper.className = "field";
 
       const label = document.createElement("label");
-      label.textContent = `Periodo ${i}`;
+      label.textContent = `Período ${i}`;
 
       const input = document.createElement("input");
       input.type = "number";
@@ -200,7 +199,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateImportPreview(values) {
     importedDemandas = values.slice();
     importPreview.hidden = !values.length;
-    importBadge.textContent = `${values.length} periodos importados`;
+    importBadge.textContent = `${values.length} períodos importados`;
     importPreviewValues.innerHTML = "";
     values.slice(0, 18).forEach((value, index) => {
       const pill = document.createElement("span");
@@ -224,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.ok) {
-      throw new Error(data.error || "Falha na operacao.");
+      throw new Error(data.error || "Falha na operação.");
     }
     return data;
   }
@@ -272,23 +271,15 @@ document.addEventListener("DOMContentLoaded", () => {
     closeSheets();
   });
 
-  document.getElementById("btnOpenSettings").addEventListener("click", (event) => {
-    event.stopPropagation();
-    profileMenu.classList.remove("open");
-    profilePanel.classList.toggle("open");
-  });
-
   profileBtn.addEventListener("click", (event) => {
     event.stopPropagation();
     const isOpen = profileMenu.classList.toggle("open");
     profileBtn.setAttribute("aria-expanded", String(isOpen));
-    profilePanel.classList.remove("open");
   });
 
   document.addEventListener("click", (event) => {
     if (!profile.contains(event.target)) {
       profileMenu.classList.remove("open");
-      profilePanel.classList.remove("open");
       profileBtn.setAttribute("aria-expanded", "false");
     }
   });
@@ -297,42 +288,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (savedAvatar) {
     avatarTop.src = savedAvatar;
   }
-
-  document.getElementById("avatarInput").addEventListener("change", (event) => {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      avatarTop.src = reader.result || defaultAvatar;
-      localStorage.setItem(storageAvatar, avatarTop.src);
-    };
-    reader.readAsDataURL(file);
-  });
-
-  const senhaError = document.getElementById("senhaError");
-  function showSenhaError(message) {
-    senhaError.hidden = false;
-    senhaError.textContent = message;
-  }
-
-  document.getElementById("btnSalvarSenha").addEventListener("click", async () => {
-    senhaError.hidden = true;
-    try {
-      const data = await postJson("/perfil/senha", {
-        senha_atual: document.getElementById("senhaAtual").value,
-        senha_nova: document.getElementById("senhaNova").value,
-        confirmar: document.getElementById("senhaConf").value
-      });
-      if (data.ok) {
-        document.getElementById("senhaAtual").value = "";
-        document.getElementById("senhaNova").value = "";
-        document.getElementById("senhaConf").value = "";
-        showSenhaError("Senha alterada com sucesso.");
-      }
-    } catch (error) {
-      showSenhaError(error.message);
-    }
-  });
 
   periodosInput.addEventListener("input", () => {
     const periodos = parseInt(periodosInput.value || "0", 10);
@@ -383,7 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentMode === "manual") {
       periodos = parseInt(periodosInput.value || "0", 10);
       if (periodos < 2) {
-        return showFormError("Informe ao menos 2 periodos.");
+        return showFormError("Informe ao menos 2 períodos.");
       }
       for (let i = 1; i <= periodos; i += 1) {
         const input = form.querySelector(`[name="demanda_${i}"]`);
@@ -401,7 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!nome || !responsavel || !descricao) {
-      return showFormError("Preencha nome do projeto, funcionario e descricao.");
+      return showFormError("Preencha nome do projeto, funcionário e descrição.");
     }
 
     btnSave.disabled = true;
@@ -418,13 +373,13 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="card-header">
           <div>
             <h2 class="card-title"></h2>
-            <p class="card-subline">Funcionario: <b></b></p>
+            <p class="card-subline">Funcionário: <b></b></p>
           </div>
           <span class="badge"></span>
         </div>
         <p class="card-desc"></p>
         <div class="card-meta">
-          <span class="meta-item">Metodo: <b>${projeto.melhor_modelo_label || projeto.melhor_modelo || "-"}</b></span>
+          <span class="meta-item">Método: <b>${projeto.melhor_modelo_label || projeto.melhor_modelo || "-"}</b></span>
           <span class="meta-item">MAD: <b>${Number(projeto.mad ?? 0).toFixed(2)}</b></span>
         </div>
         <div class="card-actions">
@@ -433,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       card.querySelector(".card-title").textContent = projeto.nome;
       card.querySelector(".card-subline b").textContent = projeto.responsavel || "-";
-      card.querySelector(".badge").textContent = `${projeto.periodos} periodos`;
+      card.querySelector(".badge").textContent = `${projeto.periodos} períodos`;
       card.querySelector(".card-desc").textContent = projeto.descricao;
 
       const empty = cards.querySelector(".empty");

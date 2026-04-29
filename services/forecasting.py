@@ -161,7 +161,7 @@ def holt_from_excel(d: List[float], alpha: float, beta: float) -> ModelResult:
         abs_error[idx] = abs(error[idx])
 
         m_vals[idx] = forecast[idx] + alpha * error[idx]
-        t_vals[idx] = t_vals[idx - 1] + beta * ((forecast[idx] - forecast[idx - 1]) - t_vals[idx - 1])
+        t_vals[idx] = t_vals[idx - 1] + beta * ((m_vals[idx] - m_vals[idx - 1]) - t_vals[idx - 1])
         next_vals[idx] = m_vals[idx] + t_vals[idx]
 
     mad = _mad_from_abs(abs_error, start_idx=3)

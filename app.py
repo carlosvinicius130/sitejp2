@@ -16,7 +16,9 @@ from sqlalchemy.engine import URL
 
 import io
 import json
+import math
 import os
+import unicodedata
 import xml.etree.ElementTree as ET
 import zipfile
 
@@ -56,7 +58,7 @@ def _database_uri():
 
     if railway_env and not any([pg_host, pg_user, pg_password, pg_database, pg_port]):
         raise RuntimeError(
-            "Variaveis do PostgreSQL nao foram configuradas no servico web do Railway. "
+            "Variáveis do PostgreSQL não foram configuradas no serviço web do Railway. "
             "Defina DATABASE_URL=${{Postgres.DATABASE_URL}} ou vincule PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE."
         )
 
@@ -80,6 +82,15 @@ def _safe_num(v):
     if n != n:
         return None
     return n
+
+
+def _ceil_num(v):
+    n = _safe_num(v)
+    if n is None:
+        return None
+    if n < 0:
+        return int(math.floor(n))
+    return int(math.ceil(n))
 
 
 def _ensure_schema():
@@ -137,17 +148,17 @@ def _serialize_results(results):
 
 def _display_method_name(name):
     labels = {
-        "media_movel_3": "Media Movel (3 periodos)",
-        "media_movel_6": "Media Movel (6 periodos)",
-        "media_movel_12": "Media Movel (12 periodos)",
-        "media_exponencial_0.10": "Media Exponencial Movel (a = 0,10)",
-        "media_exponencial_0.50": "Media Exponencial Movel (a = 0,50)",
-        "media_exponencial_0.80": "Media Exponencial Movel (a = 0,80)",
-        "ajuste_tendencia_holt": "Ajustamento Exponencial com Tendencia (Holt)",
-        "equacao_linear": "Equacao Linear",
-        "sazonalidade_tendencia_3": "Sazonalidade com Tendencia (3 periodos)",
-        "sazonalidade_simples_12": "Sazonalidade Simples (12 periodos)",
-        "sazonalidade_tendencia_12": "Sazonalidade com Tendencia (12 periodos)",
+        "media_movel_3": "Média Móvel (3 períodos)",
+        "media_movel_6": "Média Móvel (6 períodos)",
+        "media_movel_12": "Média Móvel (12 períodos)",
+        "media_exponencial_0.10": "Média Exponencial Móvel (a = 0,10)",
+        "media_exponencial_0.50": "Média Exponencial Móvel (a = 0,50)",
+        "media_exponencial_0.80": "Média Exponencial Móvel (a = 0,80)",
+        "ajuste_tendencia_holt": "Ajustamento Exponencial com Tendência (Holt)",
+        "equacao_linear": "Equação Linear",
+        "sazonalidade_tendencia_3": "Sazonalidade com Tendência (3 períodos)",
+        "sazonalidade_simples_12": "Sazonalidade Simples (12 períodos)",
+        "sazonalidade_tendencia_12": "Sazonalidade com Tendência (12 períodos)",
     }
     return labels.get(name, name or "-")
 
@@ -197,7 +208,9 @@ def _xlsx_cell_value(cell, shared_strings):
 
 
 def _normalize_header(value):
-    return (value or "").strip().lower().replace(".", "").replace("í", "i").replace("ó", "o").replace(" ", "")
+    normalized = unicodedata.normalize("NFKD", value or "")
+    ascii_value = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    return ascii_value.strip().lower().replace(".", "").replace(" ", "")
 
 
 def _parse_excel_demands(file_storage):
@@ -209,11 +222,11 @@ def _parse_excel_demands(file_storage):
         workbook_xml = ET.fromstring(zf.read("xl/workbook.xml"))
         sheets = workbook_xml.find("main:sheets", XLSX_NS)
         if sheets is None or not list(sheets):
-            raise ValueError("Planilha sem abas validas.")
+            raise ValueError("Planilha sem abas válidas.")
 
         first_sheet_path = "xl/worksheets/sheet1.xml"
         if first_sheet_path not in zf.namelist():
-            raise ValueError("Nao foi possivel ler a primeira aba.")
+            raise ValueError("Não foi possível ler a primeira aba.")
 
         shared_strings = _xlsx_shared_strings(zf)
         sheet_xml = ET.fromstring(zf.read(first_sheet_path))
@@ -237,13 +250,13 @@ def _parse_excel_demands(file_storage):
             break
 
     if header_idx is None:
-        raise ValueError("Use este formato: Periodo e D.Real.")
+        raise ValueError("Use este formato: Período e D.Real.")
 
     header = [_normalize_header(str(value or "")) for value in rows[header_idx]]
     try:
         demand_col = header.index("dreal")
     except ValueError as exc:
-        raise ValueError("Coluna D.Real nao encontrada.") from exc
+        raise ValueError("Coluna D.Real não encontrada.") from exc
 
     demandas = []
     for row in rows[header_idx + 1:]:
@@ -255,10 +268,10 @@ def _parse_excel_demands(file_storage):
         try:
             demandas.append(int(round(float(str(raw_value).replace(",", ".")))))
         except ValueError as exc:
-            raise ValueError("A coluna D.Real precisa ter apenas numeros.") from exc
+            raise ValueError("A coluna D.Real precisa ter apenas números.") from exc
 
     if not demandas:
-        raise ValueError("Nenhuma demanda valida foi encontrada no Excel.")
+        raise ValueError("Nenhuma demanda válida foi encontrada no Excel.")
     return demandas
 
 
@@ -413,7 +426,7 @@ db.init_app(app)
 
 @app.context_processor
 def inject_helpers():
-    return {"display_method_name": _display_method_name}
+    return {"display_method_name": _display_method_name, "ceil_num": _ceil_num}
 
 
 @app.before_request
@@ -449,10 +462,10 @@ def login():
 
         user = Usuario.query.filter_by(email=email, senha=senha).first()
         if not user:
-            flash("Email ou senha invalidos.", "error")
+            flash("Email ou senha inválidos.", "error")
             return redirect(url_for("login"))
         if not user.aprovado:
-            flash("Sua conta ainda esta aguardando aprovacao da equipe de TI.", "warning")
+            flash("Sua conta ainda está aguardando aprovação da equipe de TI.", "warning")
             return redirect(url_for("login"))
 
         session.clear()
@@ -472,7 +485,7 @@ def admin_login():
         senha = request.form.get("senha") or ""
 
         if login_value != ADMIN_LOGIN or senha != ADMIN_PASSWORD:
-            flash("Credenciais de administrador invalidas.", "error")
+            flash("Credenciais de administrador inválidas.", "error")
             return redirect(url_for("admin_login"))
 
         session.clear()
@@ -497,7 +510,7 @@ def cadastro():
             flash("Preencha email e senha.", "error")
             return redirect(url_for("cadastro"))
         if senha != confirmar:
-            flash("As senhas nao conferem.", "error")
+            flash("As senhas não conferem.", "error")
             return redirect(url_for("cadastro"))
 
         existe = Usuario.query.filter_by(email=email).first()
@@ -527,11 +540,26 @@ def dashboard():
         return redirect(url_for("login"))
     if not user.aprovado:
         session.clear()
-        flash("Sua conta ainda nao foi aprovada.", "warning")
+        flash("Sua conta ainda não foi aprovada.", "warning")
         return redirect(url_for("login"))
 
     projetos = Projeto.query.filter_by(usuario_id=session["user_id"]).all()
     return render_template("dashboard.html", projetos=projetos, user=user, exemplo_excel_url=url_for("exemple_image"))
+
+
+@app.route("/configuracoes", methods=["GET"])
+def settings():
+    redirect_response = _require_user()
+    if redirect_response:
+        return redirect_response
+
+    user = Usuario.query.get(session["user_id"])
+    if not user:
+        session.clear()
+        return redirect(url_for("login"))
+
+    projetos_count = Projeto.query.filter_by(usuario_id=user.id).count()
+    return render_template("settings.html", user=user, projetos_count=projetos_count)
 
 
 @app.route("/admin")
@@ -571,11 +599,11 @@ def admin_dashboard():
 def admin_aprovar_usuario(user_id):
     redirect_response = _require_admin()
     if redirect_response:
-        return jsonify({"ok": False, "error": "Nao autorizado"}), 401
+        return jsonify({"ok": False, "error": "Não autorizado"}), 401
 
     user = Usuario.query.get(user_id)
     if not user:
-        return jsonify({"ok": False, "error": "Usuario nao encontrado."}), 404
+        return jsonify({"ok": False, "error": "Usuário não encontrado."}), 404
 
     user.aprovado = True
     db.session.commit()
@@ -586,11 +614,11 @@ def admin_aprovar_usuario(user_id):
 def admin_reprovar_usuario(user_id):
     redirect_response = _require_admin()
     if redirect_response:
-        return jsonify({"ok": False, "error": "Nao autorizado"}), 401
+        return jsonify({"ok": False, "error": "Não autorizado"}), 401
 
     user = Usuario.query.get(user_id)
     if not user:
-        return jsonify({"ok": False, "error": "Usuario nao encontrado."}), 404
+        return jsonify({"ok": False, "error": "Usuário não encontrado."}), 404
 
     user.aprovado = False
     db.session.commit()
@@ -601,16 +629,16 @@ def admin_reprovar_usuario(user_id):
 def admin_deletar_usuario(user_id):
     redirect_response = _require_admin()
     if redirect_response:
-        return jsonify({"ok": False, "error": "Nao autorizado"}), 401
+        return jsonify({"ok": False, "error": "Não autorizado"}), 401
 
     data = request.get_json(silent=True) or {}
     confirmacao = (data.get("confirmacao") or "").strip().upper()
     if confirmacao != "DELETAR":
-        return jsonify({"ok": False, "error": "Confirmacao invalida. Digite DELETAR."}), 400
+        return jsonify({"ok": False, "error": "Confirmação inválida. Digite DELETAR."}), 400
 
     user = Usuario.query.get(user_id)
     if not user:
-        return jsonify({"ok": False, "error": "Usuario nao encontrado."}), 404
+        return jsonify({"ok": False, "error": "Usuário não encontrado."}), 404
 
     projetos = Projeto.query.filter_by(usuario_id=user.id).all()
     for projeto in projetos:
@@ -625,7 +653,7 @@ def admin_deletar_usuario(user_id):
 @app.route("/importar-demandas-excel", methods=["POST"])
 def importar_demandas_excel():
     if not _is_user_logged():
-        return jsonify({"ok": False, "error": "Nao autenticado"}), 401
+        return jsonify({"ok": False, "error": "Não autenticado"}), 401
 
     file_storage = request.files.get("arquivo")
     if not file_storage or not file_storage.filename:
@@ -636,7 +664,7 @@ def importar_demandas_excel():
     try:
         demandas = _parse_excel_demands(file_storage)
     except zipfile.BadZipFile:
-        return jsonify({"ok": False, "error": "Arquivo invalido ou corrompido."}), 400
+        return jsonify({"ok": False, "error": "Arquivo inválido ou corrompido."}), 400
     except ValueError as exc:
         return jsonify({"ok": False, "error": str(exc)}), 400
 
@@ -661,13 +689,13 @@ def projeto_detalhe(projeto_id):
         except Exception:
             detalhes = []
 
-    if not detalhes and demandas:
+    if demandas:
         demandas_int = [int(d.valor) for d in demandas]
         best, all_results = _run_forecasting_models(demandas_int)
 
         projeto.melhor_metodo = best.name
         projeto.mad = float(best.mad) if best.mad is not None else None
-        projeto.previsao_prox = float(best.next_forecast) if best.next_forecast is not None else None
+        projeto.previsao_prox = _ceil_num(best.next_forecast)
         detalhes = _serialize_results(all_results)
         projeto.detalhes_json = detalhes
         db.session.commit()
@@ -691,7 +719,7 @@ def projeto_detalhe(projeto_id):
 @app.route("/perfil/senha", methods=["POST"])
 def perfil_senha():
     if not _is_user_logged():
-        return jsonify({"ok": False, "error": "Nao autenticado"}), 401
+        return jsonify({"ok": False, "error": "Não autenticado"}), 401
 
     data = request.get_json(silent=True) or {}
     atual = (data.get("senha_atual") or "").strip()
@@ -703,21 +731,40 @@ def perfil_senha():
     if len(nova) < 4:
         return jsonify({"ok": False, "error": "A nova senha deve ter pelo menos 4 caracteres."}), 400
     if nova != confirmar:
-        return jsonify({"ok": False, "error": "Confirmacao nao confere."}), 400
+        return jsonify({"ok": False, "error": "Confirmação não confere."}), 400
 
     user = Usuario.query.get(session["user_id"])
     if not user or user.senha != atual:
-        return jsonify({"ok": False, "error": "Senha atual invalida."}), 400
+        return jsonify({"ok": False, "error": "Senha atual inválida."}), 400
 
     user.senha = nova
     db.session.commit()
     return jsonify({"ok": True})
 
 
+@app.route("/perfil/empresa", methods=["POST"])
+def perfil_empresa():
+    if not _is_user_logged():
+        return jsonify({"ok": False, "error": "Não autenticado"}), 401
+
+    data = request.get_json(silent=True) or {}
+    empresa = (data.get("empresa") or "").strip()
+    if len(empresa) < 2:
+        return jsonify({"ok": False, "error": "Informe um nome de empresa válido."}), 400
+
+    user = Usuario.query.get(session["user_id"])
+    if not user:
+        return jsonify({"ok": False, "error": "Usuário não encontrado."}), 404
+
+    user.empresa = empresa
+    db.session.commit()
+    return jsonify({"ok": True, "empresa": user.empresa})
+
+
 @app.route("/novo-projeto", methods=["POST"])
 def novo_projeto():
     if not _is_user_logged():
-        return jsonify({"ok": False, "error": "Nao autenticado"}), 401
+        return jsonify({"ok": False, "error": "Não autenticado"}), 401
 
     data = request.get_json(silent=True) or {}
     nome = (data.get("nome") or "").strip()
@@ -730,16 +777,16 @@ def novo_projeto():
     demandas = data.get("demandas") or []
 
     if not nome or not descricao or not responsavel or periodos < 2:
-        return jsonify({"ok": False, "error": "Preencha nome, funcionario, descricao e ao menos 2 periodos."}), 400
+        return jsonify({"ok": False, "error": "Preencha nome, funcionário, descrição e ao menos 2 períodos."}), 400
     if len(demandas) != periodos:
-        return jsonify({"ok": False, "error": "Quantidade de demandas nao bate com periodos."}), 400
+        return jsonify({"ok": False, "error": "Quantidade de demandas não bate com períodos."}), 400
 
     demandas_int = []
     for i, valor in enumerate(demandas, start=1):
         try:
             v = int(valor)
         except ValueError:
-            return jsonify({"ok": False, "error": f"Demanda invalida no periodo {i}."}), 400
+            return jsonify({"ok": False, "error": f"Demanda inválida no período {i}."}), 400
         demandas_int.append(v)
 
     projeto = Projeto(
@@ -759,7 +806,7 @@ def novo_projeto():
 
     projeto.melhor_metodo = best.name
     projeto.mad = float(best.mad) if best.mad is not None else None
-    projeto.previsao_prox = float(best.next_forecast) if best.next_forecast is not None else None
+    projeto.previsao_prox = _ceil_num(best.next_forecast)
     projeto.detalhes_json = _serialize_results(all_results)
     db.session.commit()
 
@@ -782,16 +829,16 @@ def novo_projeto():
 @app.route("/projeto/<int:projeto_id>/deletar", methods=["POST"])
 def deletar_projeto(projeto_id):
     if not _is_user_logged():
-        return jsonify({"ok": False, "error": "Nao autenticado"}), 401
+        return jsonify({"ok": False, "error": "Não autenticado"}), 401
 
     projeto = Projeto.query.filter_by(id=projeto_id, usuario_id=session["user_id"]).first()
     if not projeto:
-        return jsonify({"ok": False, "error": "Projeto nao encontrado."}), 404
+        return jsonify({"ok": False, "error": "Projeto não encontrado."}), 404
 
     data = request.get_json(silent=True) or {}
     confirmacao = (data.get("confirmacao") or "").strip().upper()
     if confirmacao != "DELETAR":
-        return jsonify({"ok": False, "error": "Confirmacao invalida. Digite DELETAR."}), 400
+        return jsonify({"ok": False, "error": "Confirmação inválida. Digite DELETAR."}), 400
 
     Demanda.query.filter_by(projeto_id=projeto.id).delete()
     db.session.delete(projeto)

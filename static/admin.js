@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.ok) {
-      throw new Error(data.error || "Falha na operacao.");
+      throw new Error(data.error || "Falha na operação.");
     }
     return data;
   }
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (action === "deletar") {
       pendingDeleteId = userId;
       pendingDeleteRow = row;
-      deleteInfo.innerHTML = `Usuario: <b>${button.dataset.email}</b><br>Digite <b>DELETAR</b> para confirmar a exclusao.`;
+      deleteInfo.innerHTML = `Usuário: <b>${button.dataset.email}</b><br>Digite <b>DELETAR</b> para confirmar a exclusão.`;
       openDeleteSheet();
       return;
     }

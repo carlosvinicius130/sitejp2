@@ -25,13 +25,13 @@
         <div class="crumb">Dashboard / Projetos</div>
         <h1 class="page-title">{{ projeto.nome }}</h1>
         {% if projeto.responsavel %}
-          <p class="page-subtitle"><b>Funcionario:</b> {{ projeto.responsavel }}</p>
+          <p class="page-subtitle"><b>Funcionário:</b> {{ projeto.responsavel }}</p>
         {% endif %}
         <p class="page-subtitle">{{ projeto.descricao }}</p>
       </div>
 
       <div class="winner-pill winner-pill--detail">
-        <span class="pill-label">Melhor metodo</span>
+        <span class="pill-label">Melhor método</span>
         <span class="pill-value">{{ display_method_name(projeto.melhor_metodo) }}</span>
       </div>
     </section>
@@ -39,8 +39,8 @@
     <section class="detail-overview">
       <div class="card card-hero detail-card detail-card--highlight">
         <div class="card-hero-top">
-          <span class="tag tag-win">Metodo vencedor</span>
-          <span class="tag tag-soft">{{ demandas|length }} periodos</span>
+          <span class="tag tag-win">Melhor método</span>
+          <span class="tag tag-soft">{{ demandas|length }} períodos</span>
         </div>
         <div class="hero-title">{{ display_method_name(projeto.melhor_metodo) }}</div>
         <div class="hero-metrics">
@@ -49,8 +49,8 @@
             <div class="metric-value">{% if projeto.mad is not none %}{{ projeto.mad | round(2) }}{% else %}-{% endif %}</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Prox. previsao (P+1)</div>
-            <div class="metric-value">{% if projeto.previsao_prox is not none %}{{ projeto.previsao_prox | round(2) }}{% else %}-{% endif %}</div>
+            <div class="metric-label">Próx. previsão (P+1)</div>
+            <div class="metric-value">{% if projeto.previsao_prox is not none %}{{ ceil_num(projeto.previsao_prox) }}{% else %}-{% endif %}</div>
           </div>
         </div>
       </div>
@@ -58,12 +58,12 @@
       <div class="card card-compact detail-card">
         <div class="card-title-row">
           <h3>Demandas registradas</h3>
-          <span class="badge">{{ demandas|length }} periodos</span>
+          <span class="badge">{{ demandas|length }} períodos</span>
         </div>
         <div class="table-wrap table-wrap--compact">
           <table class="tabela tabela--compact">
             <thead>
-              <tr><th>Periodo</th><th>Demanda</th></tr>
+              <tr><th>Período</th><th>Demanda</th></tr>
             </thead>
             <tbody>
               {% for d in demandas %}
@@ -77,14 +77,20 @@
 
     <section class="detail-section">
       <div class="section-head">
-        <h2>Modelos testados</h2>
-        <small>Visual mais limpo para comparar previsao, erro e desempenho de cada metodo.</small>
+        <div>
+          <h2>Modelo selecionado</h2>
+          <small>O melhor método aparece primeiro. Abra os outros apenas quando quiser comparar.</small>
+        </div>
+        {% if detalhes|length > 1 %}
+          <button class="btn primary methods-toggle" id="btnToggleMethods" type="button" aria-expanded="false">Ver outros métodos</button>
+        {% endif %}
       </div>
 
-      <div class="accordion accordion--detail">
+      <div class="accordion accordion--detail" id="methodsAccordion">
         {% for r in detalhes %}
           {% set mc = model_charts.get(r.name) %}
-          <details class="acc-item acc-item--detail" {% if r.name == projeto.melhor_metodo %}open{% endif %}>
+          {% set is_best = r.name == projeto.melhor_metodo %}
+          <details class="acc-item acc-item--detail{% if not is_best %} method-extra{% endif %}" {% if is_best %}open{% else %}hidden{% endif %}>
             <summary class="acc-sum acc-sum--detail">
               <div class="acc-left">
                 <span class="acc-title">{{ display_method_name(r.name) }}</span>
@@ -94,7 +100,7 @@
               </div>
               <div class="acc-right">
                 <span class="mini">MAD: {% if r.mad is not none %}{{ r.mad | round(2) }}{% else %}-{% endif %}</span>
-                <span class="mini">P+1: {% if r.next_forecast is not none %}{{ r.next_forecast | round(2) }}{% else %}-{% endif %}</span>
+                <span class="mini">P+1: {% if r.next_forecast is not none %}{{ ceil_num(r.next_forecast) }}{% else %}-{% endif %}</span>
               </div>
             </summary>
 
@@ -102,7 +108,7 @@
               <div class="chart-panel">
                 <div class="chart-panel-head">
                   <h3>{{ display_method_name(r.name) }}</h3>
-                  <p>Demanda real x previsao do metodo</p>
+                  <p>Demanda real x previsão do método</p>
                 </div>
 
                 <div class="chart-host chart-host--detail model-chart">
@@ -133,21 +139,21 @@
 
                 <div class="chart-legend-inline chart-legend-inline--detail">
                   <span><i class="dot dot-real"></i> Demanda real</span>
-                  <span><i class="dot dot-pred"></i> Previsao do metodo</span>
+                  <span><i class="dot dot-pred"></i> Previsão do método</span>
                 </div>
               </div>
 
               <div class="table-wrap table-wrap--detail">
-                <table class="tabela tabela--compact">
+                <table class="tabela tabela--compact tabela--methods">
                   <thead>
-                    <tr><th>Periodo</th><th>D. Real</th><th>Previsao</th><th>Erro</th><th>|Erro|</th></tr>
+                    <tr><th>Período</th><th>D. Real</th><th>Previsão</th><th>Erro</th><th>|Erro|</th></tr>
                   </thead>
                   <tbody>
                     {% for i in range(demandas|length) %}
                       <tr>
                         <td>{{ i + 1 }}</td>
                         <td>{{ demandas[i].valor }}</td>
-                        <td>{% if r.forecast[i] is not none %}{{ r.forecast[i] | round(2) }}{% else %}-{% endif %}</td>
+                        <td>{% if r.forecast[i] is not none %}{{ ceil_num(r.forecast[i]) }}{% else %}-{% endif %}</td>
                         <td>{% if r.error[i] is not none %}{{ r.error[i] | round(2) }}{% else %}-{% endif %}</td>
                         <td>{% if r.abs_error[i] is not none %}{{ r.abs_error[i] | round(2) }}{% else %}-{% endif %}</td>
                       </tr>
@@ -161,5 +167,22 @@
       </div>
     </section>
   </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const button = document.getElementById("btnToggleMethods");
+      const extras = document.querySelectorAll(".method-extra");
+      if (!button || !extras.length) return;
+
+      button.addEventListener("click", () => {
+        const shouldShow = button.getAttribute("aria-expanded") !== "true";
+        extras.forEach((item) => {
+          item.hidden = !shouldShow;
+        });
+        button.setAttribute("aria-expanded", String(shouldShow));
+        button.textContent = shouldShow ? "Ocultar outros métodos" : "Ver outros métodos";
+      });
+    });
+  </script>
 </body>
 </html>
