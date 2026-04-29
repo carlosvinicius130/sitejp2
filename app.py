@@ -88,9 +88,10 @@ def _ceil_num(v):
     n = _safe_num(v)
     if n is None:
         return None
-    if n < 0:
-        return int(math.floor(n))
-    return int(math.ceil(n))
+    integer = math.trunc(n)
+    if abs(n - integer) < 0.05:
+        return int(integer)
+    return int(math.floor(n) if n < 0 else math.ceil(n))
 
 
 def _ensure_schema():

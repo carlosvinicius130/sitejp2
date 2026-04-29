@@ -33,6 +33,7 @@
       <div class="winner-pill winner-pill--detail">
         <span class="pill-label">Melhor método</span>
         <span class="pill-value">{{ display_method_name(projeto.melhor_metodo) }}</span>
+        <span class="pill-help">Menor erro médio entre os modelos testados.</span>
       </div>
     </section>
 
@@ -47,10 +48,12 @@
           <div class="metric">
             <div class="metric-label">MAD</div>
             <div class="metric-value">{% if projeto.mad is not none %}{{ projeto.mad | round(2) }}{% else %}-{% endif %}</div>
+            <div class="metric-help">Erro médio absoluto. Quanto menor, melhor.</div>
           </div>
           <div class="metric">
             <div class="metric-label">Próx. previsão (P+1)</div>
             <div class="metric-value">{% if projeto.previsao_prox is not none %}{{ ceil_num(projeto.previsao_prox) }}{% else %}-{% endif %}</div>
+            <div class="metric-help">Estimativa para o próximo período.</div>
           </div>
         </div>
       </div>
@@ -105,6 +108,10 @@
             </summary>
 
             <div class="acc-body acc-body--detail">
+              <div class="method-note">
+                <strong>Como ler:</strong> previsão é o valor estimado pelo método; erro é demanda real menos previsão; |erro| ignora o sinal para medir o tamanho do desvio.
+              </div>
+
               <div class="chart-panel">
                 <div class="chart-panel-head">
                   <h3>{{ display_method_name(r.name) }}</h3>
@@ -154,8 +161,8 @@
                         <td>{{ i + 1 }}</td>
                         <td>{{ demandas[i].valor }}</td>
                         <td>{% if r.forecast[i] is not none %}{{ ceil_num(r.forecast[i]) }}{% else %}-{% endif %}</td>
-                        <td>{% if r.error[i] is not none %}{{ r.error[i] | round(2) }}{% else %}-{% endif %}</td>
-                        <td>{% if r.abs_error[i] is not none %}{{ r.abs_error[i] | round(2) }}{% else %}-{% endif %}</td>
+                        <td>{% if r.error[i] is not none %}{{ ceil_num(r.error[i]) }}{% else %}-{% endif %}</td>
+                        <td>{% if r.abs_error[i] is not none %}{{ ceil_num(r.abs_error[i]) }}{% else %}-{% endif %}</td>
                       </tr>
                     {% endfor %}
                   </tbody>

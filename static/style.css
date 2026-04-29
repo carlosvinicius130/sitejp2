@@ -1736,6 +1736,15 @@ body[data-page="dashboard"]{
   font-weight:700;
 }
 
+.pill-help,
+.metric-help{
+  display:block;
+  margin-top:6px;
+  color:#9eb4c6;
+  font-size:.82rem;
+  line-height:1.4;
+}
+
 .grid-3{
   display:grid;
   grid-template-columns:1.25fr 0.9fr 1fr;
@@ -1780,6 +1789,20 @@ body[data-page="dashboard"]{
 
 .metric-label{color:var(--muted);font-size:.82rem}
 .metric-value{margin-top:8px;font-weight:800;font-size:1.1rem}
+
+.method-note{
+  margin-bottom:12px;
+  padding:10px 12px;
+  border:1px solid rgba(93,164,224,0.1);
+  border-radius:8px;
+  background:rgba(255,255,255,0.035);
+  color:#9eb4c6;
+  font-size:.9rem;
+}
+
+.method-note strong{
+  color:#eef5fb;
+}
 
 .accordion{
   display:grid;
